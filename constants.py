@@ -10,3 +10,7 @@ image_height = 50
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+
+#OTHERS
+
+image_folder = "images"
