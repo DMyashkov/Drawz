@@ -1,10 +1,10 @@
 #SIZES
 
-screen_width = 800
-screen_height = 600
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 
-image_width = 50
-image_height = 50
+IMAGE_WIDTH = 50
+IMAGE_HEIGHT = 50
 
 #COLORS
 
