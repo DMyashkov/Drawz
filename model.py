@@ -2,14 +2,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from os import walk, getcwd
 import h5py
+from dynamic import txt_name_list, mypath
 
-mypath = "data/"
-
-txt_name_list = []
-for (dirpath, dirnames, filenames) in walk(mypath):
-    if filenames != '.DS_Store':       ##Ugh mac junk
-        txt_name_list.extend(filenames)
-        break
+print(txt_name_list)
 
 x_train = []
 x_test = []
@@ -29,7 +24,7 @@ for txt_name in txt_name_list:
     txt_path = mypath + txt_name
     x = np.load(txt_path)
     x = x.astype('float32') / 255.    ##scale images
-    y = [i] * len(x)  
+    y = [i] * len(x)
     np.random.seed(seed)
     np.random.shuffle(x)
     np.random.seed(seed)
@@ -45,22 +40,45 @@ for txt_name in txt_name_list:
     i += 1
 x_train, x_test, y_train, y_test = train_test_split(xtotal, ytotal, test_size=0.2, random_state=42)
 
-##Saves this out as hdf5 format
-data_to_write = x_test
-with h5py.File('x_test.h5', 'w') as hf:
-    hf.create_dataset("name-of-dataset",  data=data_to_write)
-data_to_write = x_train
-with h5py.File('x_train.h5', 'w') as hf:
-    hf.create_dataset("name-of-dataset",  data=data_to_write)
-data_to_write = y_test
-with h5py.File('y_test.h5', 'w') as hf:
-    hf.create_dataset("name-of-dataset",  data=data_to_write)
-data_to_write = y_train
-with h5py.File('y_train.h5', 'w') as hf:
-    hf.create_dataset("name-of-dataset",  data=data_to_write)
+print(x_train.shape)
 
-##Visualize a quickdraw file
-import matplotlib.pyplot as plt
-face1 = x_train[2].reshape(28,28)
-plt.imshow(face1)
-plt.show()
+# Convert the target labels to one-hot encoded vectors
+from keras.utils import to_categorical
+num_classes = len(txt_name_list)
+y_train = to_categorical(y_train, num_classes)
+y_test = to_categorical(y_test, num_classes)
+
+# ##Saves this out as hdf5 format
+# data_to_write = x_test
+# with h5py.File('x_test.h5', 'w') as hf:
+#     hf.create_dataset("name-of-dataset",  data=data_to_write)
+# data_to_write = x_train
+# with h5py.File('x_train.h5', 'w') as hf:
+#     hf.create_dataset("name-of-dataset",  data=data_to_write)
+# data_to_write = y_test
+# with h5py.File('y_test.h5', 'w') as hf:
+#     hf.create_dataset("name-of-dataset",  data=data_to_write)
+# data_to_write = y_train
+# with h5py.File('y_train.h5', 'w') as hf:
+#     hf.create_dataset("name-of-dataset",  data=data_to_write)
+
+
+from keras.models import Sequential
+from keras.layers import Dense, Flatten
+
+model = Sequential()
+# Reshape the training data
+print(x_train.shape)
+x_train = np.reshape(x_train, (x_train.shape[0], 28, 28, 1))
+
+model.add(Flatten(input_shape=(28, 28, 1)))
+model.add(Dense(128, activation='relu'))
+num_classes = len(txt_name_list)
+model.add(Dense(num_classes, activation='softmax'))
+
+
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+model.fit(x_train, y_train, epochs=5, batch_size=32)
+
+model.save('model.h5')
